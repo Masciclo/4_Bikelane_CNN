@@ -24,7 +24,7 @@ from shapely.geometry import Point
     - Grafico: Por cada filtro se crea un grafico con la union espacial que se realizo
 """
 
-def process_gpx_geojson(gpx_path, geojson_path, buffer_size, conditions):
+def gpx_geojson_loader(gpx_path, geojson_path):
 
     # Leer el archivo GPX
     with open(gpx_path, 'r') as gpx_file:
@@ -62,78 +62,62 @@ def process_gpx_geojson(gpx_path, geojson_path, buffer_size, conditions):
     # Print the head of the DataFrame after adding 'time' column
     print("\nDataFrame with 'time' column:")
     print(geo_gpx_df.head())
+    
+    geojson_df = gpd.read_file(geojson_path)
+    return geo_gpx_df, geojson_df
 
-    geojson_data = gpd.read_file(geojson_path)
+def filter_gpx_data(geo_gpx_df,geojson_df,condition,buffer_size):
 
-    def filter_gpx_data(geojson_data, condition):
+    # Condition construction
+    updated_condition_string = condition.replace("df", "geojson_df")
+    condition_eval = eval(updated_condition_string)
+    #Filter by column geojson_df
+    filtered_geojson_data = eval("geojson_df")[condition_eval][['ci_o_cr', 'senalzd', 'pintado', 'geometry', 'tipci', 'op_ci']]
+    print(f"Este es la columna filtro: {updated_condition_string}")
+    print(f"Largo de resultado: {len(filtered_geojson_data)}")
+    
+    # Check if the length of filtered_geojson_data is 0
 
-        # Condition construction
-        updated_condition_string = condition.replace("data", "geojson_data")
-        condition_eval = eval(updated_condition_string)
-        #Filter by column geojson_data
-        filtered_geojson_data = eval("geojson_data")[condition_eval][['ci_o_cr', 'senalzd', 'pintado', 'geometry', 'tipci', 'op_ci']]
-        print(f"Este es la columna filtro: {updated_condition_string}")
-        print(f"Largo de resultado: {len(filtered_geojson_data)}")
-        
-        # Check if the length of filtered_geojson_data is 0
+    if len(filtered_geojson_data) == 0:
+        print("No data found for this condition. Skipping the rest of the function.")
+        final_result = None
+        return final_result
+    else:
 
-        if len(filtered_geojson_data) == 0:
-            print("No data found for this condition. Skipping the rest of the function.")
-            final_result = None
-            return final_result
-        else:
+        # Convertir a un CRS que use metros
+        filtered_geojson_data = filtered_geojson_data.to_crs("EPSG:3857")
 
-            # Convertir a un CRS que use metros
-            filtered_geojson_data = filtered_geojson_data.to_crs("EPSG:3857")
+        # Crear un buffer alrededor de los datos filtrados del GeoJSON
+        buffered_geojson = filtered_geojson_data.buffer(buffer_size)
 
-            # Crear un buffer alrededor de los datos filtrados del GeoJSON
-            buffered_geojson = filtered_geojson_data.buffer(buffer_size)
+        # Convertir de nuevo a "EPSG:4326"
+        buffered_geojson = buffered_geojson.to_crs("EPSG:4326")
+        filtered_geojson_data = filtered_geojson_data.to_crs("EPSG:4326")
 
-            # Convertir de nuevo a "EPSG:4326"
-            buffered_geojson = buffered_geojson.to_crs("EPSG:4326")
-            filtered_geojson_data = filtered_geojson_data.to_crs("EPSG:4326")
+        # Graficar los datos del GeoJSON
+        fig, ax = plt.subplots()
+        filtered_geojson_data.plot(ax=ax, color='red', edgecolor='black', label='Filtered Data')
+        buffered_geojson.plot(ax=ax, color='none', edgecolor='green', label='Buffer')
+        geo_gpx_df.plot(ax=ax, color='blue', marker='o', label='GPX Points')
+        ax.set_title(condition)
 
-            # Graficar los datos del GeoJSON
-            fig, ax = plt.subplots()
-            filtered_geojson_data.plot(ax=ax, color='red', edgecolor='black', label='Filtered Data')
-            buffered_geojson.plot(ax=ax, color='none', edgecolor='green', label='Buffer')
-            geo_gpx_df.plot(ax=ax, color='blue', marker='o', label='GPX Points')
-            ax.set_title(condition)
+        plt.legend()
+        plt.show()
 
-            plt.legend()
-            plt.show()
+        # Crear un GeoDataFrame para el buffer
+        buffered_geojson_gdf = gpd.GeoDataFrame(geometry=buffered_geojson)
 
-            # Crear un GeoDataFrame para el buffer
-            buffered_geojson_gdf = gpd.GeoDataFrame(geometry=buffered_geojson)
+        # Realizar la unión espacial
+        intersection_result = gpd.sjoin(buffered_geojson_gdf, filtered_geojson_data)
+        intersection_result.drop(columns=["index_right"], inplace=True)
+        final_result = gpd.sjoin(geo_gpx_df, intersection_result, how="left")
 
-            # Realizar la unión espacial
-            intersection_result = gpd.sjoin(buffered_geojson_gdf, filtered_geojson_data)
-            intersection_result.drop(columns=["index_right"], inplace=True)
-            final_result = gpd.sjoin(geo_gpx_df, intersection_result, how="left")
-
-            # Condition construction para el loop de condiciones
-            updated_condition_string = condition.replace("data", "final_result")
-            condition_eval = eval(updated_condition_string) 
-            final_result = eval("final_result")[condition_eval][['latitude', 'longitude', 'time', 'geometry', 'index_right', 'ci_o_cr',
+        # Condition construction para el loop de condiciones
+        updated_condition_string = condition.replace("df", "final_result")
+        condition_eval = eval(updated_condition_string) 
+        final_result = eval("final_result")[condition_eval][['latitude', 'longitude', 'time', 'geometry', 'index_right', 'ci_o_cr',
                                                                     'senalzd', 'pintado', 'tipci', 'op_ci']]
-            print(f"Largo data filtrada: {len(filtered_geojson_data)}")
-            return final_result
-
-    output_folder = "filtered_data"
-    os.makedirs(output_folder, exist_ok=True)
-
-    for condition, folder_name in conditions:
-        filtered_gpx_data = filter_gpx_data(geojson_data, condition)
-
-        # Skip this iteration if filtered_gpx_data is None or empty
-        if filtered_gpx_data is None or filtered_gpx_data.empty:
-            print(f"No data found for condition: {condition}. Skipping this iteration.")
-            continue
-
-        folder_path = os.path.join(output_folder, folder_name)
-        os.makedirs(folder_path, exist_ok=True)
-        output_file = os.path.join(folder_path, f"{folder_name}.geojson")
-        filtered_gpx_data.to_file(output_file, driver='GeoJSON')
-        print(f"Filtered data saved to {output_file}")
+        print(f"Largo df filtrada: {len(filtered_geojson_data)}")
+        return final_result
 
 
