@@ -29,7 +29,7 @@ def filter_gpx_data(geo_gpx_df,geojson_df,condition,buffer_size):
     updated_condition_string = condition.replace("df", "geojson_df")
     condition_eval = eval(updated_condition_string)
     #Filter by column geojson_df
-    filtered_geojson_data = eval("geojson_df")[condition_eval][['ci_o_cr', 'senalzd', 'pintado', 'geometry', 'tipci', 'op_ci']]
+    filtered_geojson_data = eval("geojson_df")[condition_eval][['ci_o_cr', 'senaliz', 'pintado', 'geometry', 'tipci', 'op_ci']]
     print(f"Este es la columna filtro: {updated_condition_string}")
     print(f"Largo de resultado: {len(filtered_geojson_data)}")
     
@@ -73,7 +73,7 @@ def filter_gpx_data(geo_gpx_df,geojson_df,condition,buffer_size):
         updated_condition_string = condition.replace("df", "final_result")
         condition_eval = eval(updated_condition_string) 
         final_result = eval("final_result")[condition_eval][['latitude', 'longitude', 'time', 'geometry', 'index_right', 'ci_o_cr',
-                                                                    'senalzd', 'pintado', 'tipci', 'op_ci']]
+                                                                    'senaliz', 'pintado', 'tipci', 'op_ci']]
         print(f"Largo df filtrada: {len(filtered_geojson_data)}")
         return final_result
 
