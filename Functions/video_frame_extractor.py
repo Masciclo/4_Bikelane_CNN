@@ -10,9 +10,8 @@ def extract_frames_from_geojson(geojson_path, video_path, output_dir):
     # Extract timestamps from the GeoJSON data
     timestamps = geojson_data['time']
     
-    # Create a directory to save the extracted frames
-    os.makedirs(output_dir, exist_ok=True)
-    
+
+
     # Get the total number of timestamps
     total_timestamps = len(timestamps)
     print(f"Processing {geojson_path} with {total_timestamps} timestamps.")
@@ -36,8 +35,8 @@ def extract_frames_from_geojson(geojson_path, video_path, output_dir):
         
         if ret:
             # Define the output frame path
-            output_frame_path = os.path.join(output_dir, f'frame_{time_seconds}.png')
-            
+            output_frame_path = os.path.join(output_dir + f'frame_{time_seconds}.png')
+
             # Save the frame as an image
             cv2.imwrite(output_frame_path, frame)
             
@@ -49,6 +48,7 @@ def extract_frames_from_geojson(geojson_path, video_path, output_dir):
             
             # Print progress information
             print(f"Progress: {percentage:.2f}% - Elapsed Time: {elapsed_time:.2f} seconds")
+            print(output_frame_path)
         else:
             print(f"Failed to extract frame at {time_seconds} seconds")
     
