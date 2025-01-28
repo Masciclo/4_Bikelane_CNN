@@ -5,6 +5,7 @@
 [![ResNet-18](https://img.shields.io/badge/PyTorch-ResNet18-CB3234)](https://github.com/Masciclo/Bikelane_CNN/blob/main/resnet_ciclo.ipynb)  
 
 ---
+<img src="https://github.com/user-attachments/assets/e1ee251e-3a7f-4f0e-86cc-c0791544d3bc" alt="Image" width="800"/>
 
 ## **Project Overview**  
 This repository contains a two-stage pipeline for analyzing bicycle lane infrastructure:  
