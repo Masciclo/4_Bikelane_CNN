@@ -104,30 +104,5 @@ Bikelane_CNN/
 └── models/                          # Pretrained weights (TODO)  
 ```  
 
----
-
-## **Installation**  
-```bash  
-git clone https://github.com/Masciclo/Bikelane_CNN.git  
-conda create -n bikelane python=3.8  
-conda activate bikelane  
-pip install -r requirements.txt  # See dependencies in repo  
-```  
-
-**Hardware Requirements**:  
-- GeoSampler: 4GB RAM, GDAL >=3.4  
-- ResNet Training: NVIDIA GPU (CUDA 11.x), 8GB VRAM  
-
----
-
-## **Questions for Prompt Improvement**  
-1. Should the GeoSampler support additional geometry types (Polygons, LineStrings)?  
-2. Are there specific performance metrics for the ResNet (e.g., mAP, F1-score)?  
-3. Are pre-trained weights available for transfer learning?  
-4. Does the metadata include temporal features (time-of-day, weather)?  
-5. What license applies to sample data (MP4/GPX)?  
-
----
-
 ## **License**  
 MIT License - See [LICENSE](LICENSE) for details.
